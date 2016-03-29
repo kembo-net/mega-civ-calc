@@ -6,6 +6,9 @@
   <title>MegaCiv用計算機</title>
   <script>
     var TableId = 'main-table';
+    var selectBox0 = '<select onChange="reloadValue(this)"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option></select>';
+    var selectBox1 = '<select onChange="reloadValue(this)"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option></select>';
+    var delButton = '<input type="button" value="Del" onclick="delRow(this)">';
     function reloadTotal() {
       var table = document.getElementById(TableId);
       var bottom_row = table.children[2].children[0];
@@ -26,6 +29,25 @@
       var value  = level * number * number;
       row.children[2].innerHTML = value;
       reloadTotal();
+    }
+    function addRow() {
+      var table = document.getElementById(TableId);
+      var tbody = table.children[1];
+      var newRow = document.createElement('tr');
+      var newCell;
+      newCell = document.createElement('td');
+      newCell.innerHTML = selectBox1;
+      newRow.appendChild(newCell);
+      newCell = document.createElement('td');
+      newCell.innerHTML = selectBox0;
+      newRow.appendChild(newCell);
+      newCell = document.createElement('td');
+      newCell.innerHTML = '0';
+      newRow.appendChild(newCell);
+      newCell = document.createElement('td');
+      newCell.innerHTML = delButton;
+      newRow.appendChild(newCell);
+      tbody.appendChild(newRow);
     }
   </script>
 </head>
@@ -56,6 +78,7 @@
         </td>
         <td>
           <select class="number" onChange="reloadValue(this)">
+            <option value="0">0</option>
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
@@ -67,8 +90,8 @@
             <option value="9">9</option>
           </select>
         </td>
-        <td class="value">1</td>
-        <td><input type="button" value="Del" onclick="delRow()"></td>
+        <td class="value">0</td>
+        <td><input type="button" value="Del" onclick="delRow(this)"></td>
       </tr>
     </tbody>
     <tfoot>
