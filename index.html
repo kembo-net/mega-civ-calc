@@ -10,17 +10,17 @@
 <body>
   <table id="main-table">
     <thead>
-      <th>
-        <tr>Level</tr>
-        <tr>Number</tr>
-        <tr>Value</tr>
-        <tr></tr>
-      </th>
+      <tr>
+        <th>Level</th>
+        <th>Number</th>
+        <th>Value</th>
+        <th><input type="button" value="Add" onclick="addRow()"></th>
+      </tr>
     </thead>
     <tbody>
       <tr id="input-boxes">
         <td>
-          <select class="level" onChange="reloadValue()">
+          <select class="level" onChange="reloadValue(this)">
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
@@ -33,7 +33,7 @@
           </select>
         </td>
         <td>
-          <select class="number" onChange="reloadValue()">
+          <select class="number" onChange="reloadValue(this)">
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
@@ -46,14 +46,14 @@
           </select>
         </td>
         <td class="value">1</td>
-        <td><input type="button" value="Add" onclick="addRow()"></td>
+        <td><input type="button" value="Del" onclick="delRow()"></td>
       </tr>
     </tbody>
     <tfoot>
       <tr>
         <td><b>Total</b></td>
-        <td class="number">0</td>
-        <td class="value">0</td>
+        <td class="number">1</td>
+        <td class="value">1</td>
         <td></td>
       </tr>
     </tfoot>
