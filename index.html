@@ -22,8 +22,8 @@
       bottom_row.children[1].innerHTML = number;
       bottom_row.children[2].innerHTML = value;
     }
-    function reloadValue(item) {
-      var row = item.parentElement.parentElement;
+    function reloadValue(elem) {
+      var row = elem.parentElement.parentElement;
       var level  = parseInt(row.children[0].children[0].value, 10);
       var number = parseInt(row.children[1].children[0].value, 10);
       var value  = level * number * number;
@@ -48,6 +48,11 @@
       newCell.innerHTML = delButton;
       newRow.appendChild(newCell);
       tbody.appendChild(newRow);
+    }
+    function delRow(elem) {
+      var row = elem.parentElement.parentElement;
+      row.parentElement.removeChild(row);
+      reloadTotal();
     }
   </script>
 </head>
@@ -97,8 +102,8 @@
     <tfoot>
       <tr>
         <td><b>Total</b></td>
-        <td class="number">1</td>
-        <td class="value">1</td>
+        <td class="number">0</td>
+        <td class="value">0</td>
         <td></td>
       </tr>
     </tfoot>
