@@ -5,6 +5,28 @@
   <meta name="viewport" content="width=device-width">
   <title>MegaCiv用計算機</title>
   <script>
+    var TableId = 'main-table';
+    function reloadTotal() {
+      var table = document.getElementById(TableId);
+      var bottom_row = table.children[2].children[0];
+      var data_rows = table.children[1].children;
+      var number = 0, value = 0;
+      for (var i = 0; i < data_rows.length; i++) {
+        var row = data_rows[i];
+        number += parseInt(row.children[1].children[0].value, 10);
+        value  += parseInt(row.children[2].innerHTML, 10);
+      }
+      bottom_row.children[1].innerHTML = number;
+      bottom_row.children[2].innerHTML = value;
+    }
+    function reloadValue(item) {
+      var row = item.parentElement.parentElement;
+      var level  = parseInt(row.children[0].children[0].value, 10);
+      var number = parseInt(row.children[1].children[0].value, 10);
+      var value  = level * number * number;
+      row.children[2].innerHTML = value;
+      reloadTotal();
+    }
   </script>
 </head>
 <body>
