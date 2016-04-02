@@ -4,13 +4,29 @@
   <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
   <meta name="viewport" content="width=device-width">
   <title>MegaCiv用計算機</title>
+  <style type="text/css">
+    .normal{background-color: #ffffff;}
+    .red   {background-color: #f4cccc;}
+    .blue  {background-color: #c9daf8;}
+    .orange{background-color: #f9cb9c;}
+    .green {background-color: #d9ead3;}
+    .yellow{background-color: #fff2cc;}
+  </style>
   <script>
-    var TableId = 'main-table';
-    var selectBox0 = '<select onChange="reloadValue(this)"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option></select>';
-    var selectBox1 = '<select onChange="reloadValue(this)"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option></select>';
+    var MainTableId = 'main-table';
+    var OrderTableId = 'orders';
     var delButton = '<input type="button" value="Del" onclick="delRow(this)">';
+    var CostList = [50, 60, 70, 80, 90, 110, 120, 130, 140, 150, 160, 170, 180, 220, 230, 240, 250, 260, 270, 280, 290];
+    var ColorList = [['赤', 'red'], ['青', 'blue'], ['橙', 'orange'], ['緑', 'green'], ['黄', 'yellow']];
+    function createOption(text, val) {
+      if (val == null) val = text;
+      newOption = document.createElement('option');
+      newOption.value = val.toString();
+      newOption.innerHTML = text.toString();
+      return newOption;
+    }
     function reloadTotal() {
-      var table = document.getElementById(TableId);
+      var table = document.getElementById(MainTableId);
       var bottom_row = table.children[2].children[0];
       var data_rows = table.children[1].children;
       var number = 0, value = 0;
@@ -21,6 +37,7 @@
       }
       bottom_row.children[1].innerHTML = number;
       bottom_row.children[2].innerHTML = value;
+      reloadSurplus();
     }
     function reloadValue(elem) {
       var row = elem.parentElement.parentElement;
@@ -31,19 +48,32 @@
       reloadTotal();
     }
     function addRow() {
-      var table = document.getElementById(TableId);
+      function select_box(a, b) {
+        var newBox = document.createElement('select');
+        var newOption;
+        for (var i = a; i <= b; i++) {
+          newBox.appendChild(createOption(i));
+        }
+        newBox.setAttribute('onChange', 'reloadValue(this)');
+        return newBox;
+      }
+
+      var table = document.getElementById(MainTableId);
       var tbody = table.children[1];
       var newRow = document.createElement('tr');
-      var newCell;
-      newCell = document.createElement('td');
-      newCell.innerHTML = selectBox1;
+      var newCell = document.createElement('td');
+      /*資源レベル選択ボックス*/
+      newCell.appendChild(select_box(1, 9));
       newRow.appendChild(newCell);
+      /*枚数選択ボックス*/
       newCell = document.createElement('td');
-      newCell.innerHTML = selectBox0;
+      newCell.appendChild(select_box(0, 9));
       newRow.appendChild(newCell);
+      /*ポイント数*/
       newCell = document.createElement('td');
       newCell.innerHTML = '0';
       newRow.appendChild(newCell);
+      /*削除ボタン*/
       newCell = document.createElement('td');
       newCell.innerHTML = delButton;
       newRow.appendChild(newCell);
@@ -53,6 +83,101 @@
       var row = elem.parentElement.parentElement;
       row.parentElement.removeChild(row);
       reloadTotal();
+    }
+    function changeCredit(elem, num) {
+      var color = elem.className;
+      var row = elem.parentElement.parentElement.parentElement.children[1];
+      var target = row.getElementsByClassName(color)[0];
+      target.value = parseInt(target.value, 10) + num;
+
+      var orders = document.getElementById('orders').children[1]
+      var targets = orders.getElementsByClassName(color);
+      for (var i = 0; i < targets.length; i++) {
+        reloadReduce(targets[i]);
+      }
+    }
+    function increaseCredit(elem) {
+      changeCredit(elem,  5);
+    }
+    function decreaseCredit(elem) {
+      changeCredit(elem, -5);
+    }
+    function search_surplus_cell() {
+      return document.getElementById(OrderTableId).children[2].children[0].children[1];
+    }
+    function reloadSurplus() {
+      var main_table = document.getElementById(MainTableId);
+      var resource  = parseInt(main_table.children[2].children[0].children[2].innerHTML, 10);
+      var data_rows = document.getElementById(OrderTableId).children[1].children;
+      var surplus_cell = search_surplus_cell();
+      var total_costs = 0;
+      for (var i = 0; i < data_rows.length; i++) {
+        var cost = data_rows[i].children[2].innerHTML;
+        if (cost.length > 0) total_costs += parseInt(cost, 10);
+      }
+      surplus = resource - total_costs;
+      surplus_cell.innerHTML = surplus;
+      if (surplus < 0) {
+        surplus_cell.style.color = 'red';
+      } else {
+        surplus_cell.style.color = 'black';
+      }
+    }
+    function reloadReduce(elem) {
+      var row = elem.parentElement.parentElement;
+      var color = row.children[0].children[0].value;
+      var cost  = row.children[1].children[0].value;
+      var target_cell = row.children[2]
+      if ((color == '-') || (cost == '-')) {
+        target_cell.innerHTML = '';
+      } else {
+        var discount = document.getElementById('credits').getElementsByClassName(color)[1].value;
+        var reduce = parseInt(cost, 10) - parseInt(discount, 10);
+        if (reduce < 0) reduce = 0;
+        target_cell.innerHTML = reduce.toString();
+      }
+      reloadSurplus();
+    }
+    function reloadColor(elem) {
+      console.log(elem.value);
+      if (elem.value == '-') {
+        elem.className = 'normal'
+      } else {
+        elem.className = elem.value;
+      }
+      reloadReduce(elem);
+    }
+    function addOrder() {
+      var table_body = document.getElementById(OrderTableId).children[1];
+      var newRow = document.createElement('tr');
+      var newCell = document.createElement('td');
+      var newBox
+      /* 色選択ボックス */
+      newBox = document.createElement('select');
+      newBox.appendChild(createOption('-'));
+      for (var i = 0; i < ColorList.length; i++) {
+        newBox.appendChild( createOption(ColorList[i][0], ColorList[i][1]) );
+      }
+      newBox.setAttribute('onChange', 'reloadColor(this)');
+      newCell.appendChild(newBox);
+      newRow.appendChild(newCell);
+      /*コスト選択ボックス*/
+      newCell = document.createElement('td');
+      newBox = document.createElement('select');
+      newBox.appendChild(createOption('-'));
+      for (var i = 0; i < CostList.length; i++) {
+        newBox.appendChild( createOption(CostList[i]) );
+      }
+      newBox.setAttribute('onChange', 'reloadReduce(this)');
+      newCell.appendChild(newBox);
+      newRow.appendChild(newCell);
+      /*割り引き後のお値段(最初は空欄)*/
+      newRow.appendChild(document.createElement('td'));
+      /*削除ボタン*/
+      newCell = document.createElement('td');
+      newCell.innerHTML = delButton;
+      newRow.appendChild(newCell);
+      table_body.appendChild(newRow);
     }
   </script>
 </head>
@@ -105,6 +230,61 @@
         <td class="number">0</td>
         <td class="value">0</td>
         <td></td>
+      </tr>
+    </tfoot>
+  </table>
+  <hr>
+  <table id="credits">
+    <thead>
+      <tr>
+        <th colspan=5>Credits</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><input type="button" value="+5" onclick="increaseCredit(this)" class="red"></td>
+        <td><input type="button" value="+5" onclick="increaseCredit(this)" class="blue"></td>
+        <td><input type="button" value="+5" onclick="increaseCredit(this)" class="orange"></td>
+        <td><input type="button" value="+5" onclick="increaseCredit(this)" class="green"></td>
+        <td><input type="button" value="+5" onclick="increaseCredit(this)" class="yellow"></td>
+      </tr>
+      <tr>
+        <td><input type="text" size="1" value="0" class="red"></td>
+        <td><input type="text" size="1" value="0" class="blue"></td>
+        <td><input type="text" size="1" value="0" class="orange"></td>
+        <td><input type="text" size="1" value="0" class="green"></td>
+        <td><input type="text" size="1" value="0" class="yellow"></td>
+      </tr>
+      <tr>
+        <td><input type="button" value="-5" onclick="decreaseCredit(this)" class="red"></td>
+        <td><input type="button" value="-5" onclick="decreaseCredit(this)" class="blue"></td>
+        <td><input type="button" value="-5" onclick="decreaseCredit(this)" class="orange"></td>
+        <td><input type="button" value="-5" onclick="decreaseCredit(this)" class="green"></td>
+        <td><input type="button" value="-5" onclick="decreaseCredit(this)" class="yellow"></td>
+      </tr>
+    </tbody>
+  </table>
+  <hr>
+  <table id="orders">
+    <thead>
+      <tr>
+        <th colspan="2">Orders</th>
+        <th><input type="button" value="Add" onclick="addOrder()"></th>
+        <th></th>
+      </tr>
+      <tr>
+        <th>Type</th>
+        <th>Cost</th>
+        <th>Reduced</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+    <tfoot>
+      <tr>
+        <th colspan="2">Surplus</th>
+        <td>0</td>
       </tr>
     </tfoot>
   </table>
