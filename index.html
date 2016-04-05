@@ -78,7 +78,7 @@
       newRow.appendChild(newCell);
       /*枚数選択ボックス*/
       newCell = document.createElement('td');
-      newCell.appendChild(select_box(0, 9));
+      newCell.appendChild(select_box(1, 9));
       newRow.appendChild(newCell);
       /*ポイント数*/
       newCell = document.createElement('td');
@@ -222,7 +222,6 @@
         </td>
         <td>
           <select class="number" onChange="reloadValue(this)">
-            <option value="0">0</option>
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
@@ -234,15 +233,15 @@
             <option value="9">9</option>
           </select>
         </td>
-        <td class="value">0</td>
+        <td class="value">1</td>
         <td><input type="button" value="Del" onclick="delRow(this)"></td>
       </tr>
     </tbody>
     <tfoot>
       <tr>
         <td><b>Total</b></td>
-        <td class="number">0</td>
-        <td class="value">0</td>
+        <td class="number">1</td>
+        <td class="value">1</td>
         <td></td>
       </tr>
     </tfoot>
@@ -296,7 +295,7 @@
     <tfoot>
       <tr>
         <th colspan="2">Surplus</th>
-        <td>0</td>
+        <td>1</td>
         <td></td>
       </tr>
     </tfoot>
