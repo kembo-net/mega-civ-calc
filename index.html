@@ -82,13 +82,14 @@
       newRow.appendChild(newCell);
       /*ポイント数*/
       newCell = document.createElement('td');
-      newCell.innerHTML = '0';
+      newCell.innerHTML = '1';
       newRow.appendChild(newCell);
       /*削除ボタン*/
       newCell = document.createElement('td');
       newCell.innerHTML = delButton;
       newRow.appendChild(newCell);
       tbody.appendChild(newRow);
+      reloadTotal();
     }
     function delRow(elem) {
       var row = elem.parentElement.parentElement;
@@ -149,13 +150,24 @@
       }
       reloadSurplus();
     }
-    function reloadColor(elem) {
-      console.log(elem.value);
-      if (elem.value == '-') {
-        elem.className = 'normal'
-      } else {
-        elem.className = elem.value;
+    function getColor(elem) {
+      var color = null;
+      for (var i = 0; i < elem.classList.length; i++) {
+        var c_name = elem.classList.item(i);
+        if (ColorList.findIndex(function(a){return a[1] == c_name;}) >= 0) {
+          color = c_name;
+          break;
+        }
       }
+      console.log(color)
+      return color;
+    }
+    function reloadColor(elem) {
+      console.log(elem.className)
+      elem.classList.remove(getColor(elem));
+      elem.classList.add(
+        (elem.value == '-') ? 'normal' : elem.value
+      );
       reloadReduce(elem);
     }
     function addOrder() {
@@ -197,18 +209,18 @@
     <thead>
       <tr>
         <th colspan="3">Resources</th>
+        <th><input type="button" value="Add" onclick="addRow()"></th>
       </tr>
       <tr>
         <th>Level</th>
         <th>Number</th>
         <th>Value</th>
-        <th><input type="button" value="Add" onclick="addRow()"></th>
       </tr>
     </thead>
     <tbody>
       <tr id="input-boxes">
         <td>
-          <select class="level" onChange="reloadValue(this)">
+          <select onChange="reloadValue(this)">
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
@@ -221,7 +233,7 @@
           </select>
         </td>
         <td>
-          <select class="number" onChange="reloadValue(this)">
+          <select onChange="reloadValue(this)">
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
@@ -282,12 +294,12 @@
     <thead>
       <tr>
         <th colspan="3">Orders</th>
+        <th><input type="button" value="Add" onclick="addOrder()"></th>
       </tr>
       <tr>
         <th>Type</th>
         <th>Cost</th>
         <th>Reduced</th>
-        <th><input type="button" value="Add" onclick="addOrder()"></th>
       </tr>
     </thead>
     <tbody>
