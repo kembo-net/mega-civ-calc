@@ -1,2 +1,10 @@
 *.sw[po]
 
+android
+browser
+/cordova-app/plugins/cordova-plugin-console
+/cordova-app/plugins/cordova-plugin-device
+/cordova-app/plugins/cordova-plugin-whitelist
+cordova-plugin-device
+cordova-plugin-whitelist
+cordova-plugin-console
