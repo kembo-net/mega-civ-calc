@@ -4,23 +4,303 @@
   <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
   <meta name="viewport" content="width=device-width">
   <title>MegaCiv用計算機</title>
+  <style type="text/css">
+    .normal {background-color: #ffffff;}
+    .red    {background-color: #f4cccc;}
+    .blue   {background-color: #c9daf8;}
+    .orange {background-color: #f9cb9c;}
+    .green  {background-color: #d9ead3;}
+    .yellow {background-color: #fff2cc;}
+    .disable-element {
+      text-decoration: line-through;
+    }
+    table {
+      width: 250px;
+      table-layout: fixed;
+    }
+    th, td {
+      text-align: center;
+      color: #000;
+    }
+    td.disable-element{
+      color: #888;
+    }
+    input, select {
+      width: 100%;
+      height: 28px;
+    }
+  </style>
   <script>
+    var MainTableId = 'resources';
+    var OrderTableId = 'orders';
+    var CostList = [50, 60, 70, 80, 90, 110, 120, 130, 140, 150, 160, 170, 180, 220, 230, 240, 250, 260, 270, 280, 290];
+    var ColorList = [['赤', 'red'], ['青', 'blue'], ['橙', 'orange'], ['緑', 'green'], ['黄', 'yellow']];
+    function parentRow(elem) {
+      var row = elem;
+      while (row.tagName != 'TR'){
+        row = row.parentElement;
+      }
+      return row;
+    }
+    function toggle(elem) {
+      var row = parentRow(elem);
+      row.classList.toggle('disable');
+      for (var i = 0; i < row.children.length; i++) {
+        var cell = row.children[i];
+        if (cell.children.length == 0) {
+          cell.classList.toggle('disable-element');
+        } else {
+          var box = cell.children[0]
+          if (box.tagName == 'SELECT') {
+            box.classList.toggle('disable-element');
+            if (box.hasAttribute('disabled')) {
+              box.removeAttribute('disabled');
+            } else {
+              box.setAttributeNode(document.createAttribute('disabled'));
+            }
+          }
+        }
+      }
+      reloadTotal();
+    }
+    function checkEnable(row) {
+      for (var i = 0; i < row.classList.length; i++) {
+        if (row.classList.item(i) == 'disable') {
+          return false;
+        }
+      }
+      return true;
+    }
+    function createOption(text, val) {
+      if (val == null) val = text;
+      newOption = document.createElement('option');
+      newOption.value = val.toString();
+      newOption.innerHTML = text.toString();
+      return newOption;
+    }
+    function createDelButton() {
+      var newButton = document.createElement('input');
+      newButton.setAttribute('type', 'button');
+      newButton.setAttribute('value', 'Del');
+      newButton.setAttribute('onclick', 'delRow(this)');
+      return newButton;
+    }
+    function createToggleBox() {
+      var newBox = document.createElement('input');
+      newBox.setAttribute('type', 'checkbox');
+      newBox.setAttribute('onclick', 'toggle(this)');
+      newBox.setAttribute('checked', 'checked');
+      return newBox
+    }
+    function reloadTotal() {
+      var table = document.getElementById(MainTableId);
+      var bottom_row = table.getElementsByTagName('tfoot')[0].children[0];
+      var data_rows = table.getElementsByTagName('tbody')[0].children;
+      var number = 0, value = 0;
+      for (var i = 0; i < data_rows.length; i++) {
+        var row = data_rows[i];
+        if (checkEnable(row)) {
+          number += parseInt(row.getElementsByClassName('number')[0].value, 10);
+          value  += parseInt(row.getElementsByClassName('value')[0].innerHTML, 10);
+        }
+      }
+      bottom_row.getElementsByClassName('number')[0].innerHTML = number;
+      bottom_row.getElementsByClassName('value')[0].innerHTML = value;
+      reloadSurplus();
+    }
+    function reloadValue(elem) {
+      var row = parentRow(elem);
+      var level  = parseInt(row.getElementsByClassName('level')[0].value, 10);
+      var number = parseInt(row.getElementsByClassName('number')[0].value, 10);
+      var value  = level * number * number;
+      row.getElementsByClassName('value')[0].innerHTML = value;
+      if (checkEnable(row)) {
+        reloadTotal();
+      }
+    }
+    function addRow() {
+      function select_box(a, b, cls) {
+        var newBox = document.createElement('select');
+        var newOption;
+        for (var i = a; i <= b; i++) {
+          newBox.appendChild(createOption(i));
+        }
+        newBox.setAttribute('onChange', 'reloadValue(this)');
+        newBox.classList.add(cls);
+        return newBox;
+      }
+
+      var table = document.getElementById(MainTableId);
+      var tbody = table.getElementsByTagName('tbody')[0]
+      var newRow = document.createElement('tr');
+      var newCell = document.createElement('td');
+      /*有効・無効チェックボックス*/
+      newCell.appendChild(createToggleBox());
+      newRow.appendChild(newCell);
+      /*資源レベル選択ボックス*/
+      newCell = document.createElement('td');
+      newCell.appendChild(select_box(1, 9, 'level'));
+      newRow.appendChild(newCell);
+      /*枚数選択ボックス*/
+      newCell = document.createElement('td');
+      newCell.appendChild(select_box(1, 9, 'number'));
+      newRow.appendChild(newCell);
+      /*ポイント数*/
+      newCell = document.createElement('td');
+      newCell.innerHTML = '1';
+      newCell.classList.add('value');
+      newRow.appendChild(newCell);
+      /*削除ボタン*/
+      newCell = document.createElement('td');
+      newCell.appendChild(createDelButton());
+      newRow.appendChild(newCell);
+      tbody.appendChild(newRow);
+      reloadTotal();
+    }
+    function delRow(elem) {
+      var row = parentRow(elem);
+      row.parentElement.removeChild(row);
+      reloadTotal();
+    }
+    function changeCredit(elem, num) {
+      var color = elem.className;
+      var row = document.getElementById('credit-boxes');
+      var target = row.getElementsByClassName(color)[0];
+      var val = parseInt(target.value, 10) + num;
+      target.value = (val < 0) ? 0 : val;
+
+      var orders = document.getElementById('orders').getElementsByTagName('tbody')[0];
+      var targets = orders.getElementsByClassName(color);
+      for (var i = 0; i < targets.length; i++) {
+        reloadReduce(targets[i]);
+      }
+    }
+    function increaseCredit(elem) {
+      changeCredit(elem,  5);
+    }
+    function decreaseCredit(elem) {
+      changeCredit(elem, -5);
+    }
+    function reloadSurplus() {
+      var main_table = document.getElementById(MainTableId);
+      var resource  = parseInt(main_table.getElementsByTagName('tfoot')[0].getElementsByClassName('value')[0].innerHTML, 10);
+      var order_table = document.getElementById('orders')
+      var data_rows = order_table.getElementsByTagName('tbody')[0].children;
+      var surplus_cell = document.getElementById('surplus');
+      var total_costs = 0;
+      for (var i = 0; i < data_rows.length; i++) {
+        var row = data_rows[i];
+        if ( checkEnable(row) ) {
+          var cost = row.getElementsByClassName('reduced')[0].innerHTML;
+          if (cost.length > 0) total_costs += parseInt(cost, 10);
+        }
+      }
+      surplus = resource - total_costs;
+      surplus_cell.innerHTML = surplus;
+      if (surplus < 0) {
+        surplus_cell.style.color = 'red';
+      } else {
+        surplus_cell.style.color = 'black';
+      }
+    }
+    function reloadReduce(elem) {
+      var row = parentRow(elem);
+      var color = row.getElementsByClassName('color')[0].value;
+      var cost  = row.getElementsByClassName('cost')[0].value;
+      var target_cell = row.getElementsByClassName('reduced')[0]
+      if ((color == '-') || (cost == '-')) {
+        target_cell.innerHTML = '';
+      } else {
+        var discount = document.getElementById('credits').getElementsByClassName(color)[1].value;
+        var reduce = parseInt(cost, 10) - parseInt(discount, 10);
+        if (reduce < 0) reduce = 0;
+        target_cell.innerHTML = reduce.toString();
+      }
+      reloadSurplus();
+    }
+    function getColor(elem) {
+      var color = null;
+      for (var i = 0; i < elem.classList.length; i++) {
+        var c_name = elem.classList.item(i);
+        if (ColorList.findIndex(function(a){return a[1] == c_name;}) >= 0) {
+          color = c_name;
+          break;
+        }
+      }
+      console.log(color)
+      return color;
+    }
+    function reloadColor(elem) {
+      console.log(elem.className)
+      elem.classList.remove(getColor(elem));
+      elem.classList.add(
+        (elem.value == '-') ? 'normal' : elem.value
+      );
+      reloadReduce(elem);
+    }
+    function addOrder() {
+      var table_body = document.getElementById(OrderTableId).getElementsByTagName('tbody')[0];
+      var newRow = document.createElement('tr');
+      var newCell = document.createElement('td');
+      /*有効・無効チェックボックス*/
+      newCell.appendChild(createToggleBox());
+      newRow.appendChild(newCell);
+      /* 色選択ボックス */
+      newCell = document.createElement('td');
+      var newBox = document.createElement('select');
+      newBox.appendChild(createOption('-'));
+      for (var i = 0; i < ColorList.length; i++) {
+        newBox.appendChild( createOption(ColorList[i][0], ColorList[i][1]) );
+      }
+      newBox.setAttribute('onChange', 'reloadColor(this)');
+      newBox.classList.add('color');
+      newCell.appendChild(newBox);
+      newRow.appendChild(newCell);
+      /*コスト選択ボックス*/
+      newCell = document.createElement('td');
+      newBox = document.createElement('select');
+      newBox.appendChild(createOption('-'));
+      for (var i = 0; i < CostList.length; i++) {
+        newBox.appendChild( createOption(CostList[i]) );
+      }
+      newBox.setAttribute('onChange', 'reloadReduce(this)');
+      newBox.classList.add('cost')
+      newCell.appendChild(newBox);
+      newRow.appendChild(newCell);
+      /*割り引き後のお値段(最初は空欄)*/
+      newCell = document.createElement('td')
+      newCell.classList.add('reduced')
+      newRow.appendChild(newCell);
+      /*削除ボタン*/
+      newCell = document.createElement('td');
+      newCell.appendChild(createDelButton());
+      newRow.appendChild(newCell);
+      table_body.appendChild(newRow);
+    }
   </script>
 </head>
 <body>
-  <table id="main-table">
+  <table id="resources">
     <thead>
-      <th>
-        <tr>Level</tr>
-        <tr>Number</tr>
-        <tr>Value</tr>
-        <tr></tr>
-      </th>
+      <tr>
+        <th></th>
+        <th colspan="3">Resources</th>
+        <th><input type="button" value="Add" onclick="addRow()"></th>
+      </tr>
+      <tr>
+        <th></th>
+        <th>Level</th>
+        <th>Number</th>
+        <th>Value</th>
+      </tr>
     </thead>
     <tbody>
       <tr id="input-boxes">
         <td>
-          <select class="level" onChange="reloadValue()">
+          <input type="checkbox" onclick="toggle(this)" checked="checked">
+        </td>
+        <td>
+          <select class="level" onChange="reloadValue(this)">
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
@@ -33,7 +313,7 @@
           </select>
         </td>
         <td>
-          <select class="number" onChange="reloadValue()">
+          <select class="number" onChange="reloadValue(this)">
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
@@ -46,14 +326,71 @@
           </select>
         </td>
         <td class="value">1</td>
-        <td><input type="button" value="Add" onclick="addRow()"></td>
+        <td><input type="button" value="Del" onclick="delRow(this)"></td>
       </tr>
     </tbody>
     <tfoot>
       <tr>
-        <td><b>Total</b></td>
-        <td class="number">0</td>
-        <td class="value">0</td>
+        <td colspan="2"><b>Total</b></td>
+        <td class="number">1</td>
+        <td class="value">1</td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+  <hr>
+  <table id="credits">
+    <thead>
+      <tr>
+        <th colspan=5>Credits</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><input type="button" value="+5" onclick="increaseCredit(this)" class="red"></td>
+        <td><input type="button" value="+5" onclick="increaseCredit(this)" class="blue"></td>
+        <td><input type="button" value="+5" onclick="increaseCredit(this)" class="orange"></td>
+        <td><input type="button" value="+5" onclick="increaseCredit(this)" class="green"></td>
+        <td><input type="button" value="+5" onclick="increaseCredit(this)" class="yellow"></td>
+      </tr>
+      <tr id="credit-boxes">
+        <td><input type="text" size="1" value="0" class="red"></td>
+        <td><input type="text" size="1" value="0" class="blue"></td>
+        <td><input type="text" size="1" value="0" class="orange"></td>
+        <td><input type="text" size="1" value="0" class="green"></td>
+        <td><input type="text" size="1" value="0" class="yellow"></td>
+      </tr>
+      <tr>
+        <td><input type="button" value="-5" onclick="decreaseCredit(this)" class="red"></td>
+        <td><input type="button" value="-5" onclick="decreaseCredit(this)" class="blue"></td>
+        <td><input type="button" value="-5" onclick="decreaseCredit(this)" class="orange"></td>
+        <td><input type="button" value="-5" onclick="decreaseCredit(this)" class="green"></td>
+        <td><input type="button" value="-5" onclick="decreaseCredit(this)" class="yellow"></td>
+      </tr>
+    </tbody>
+  </table>
+  <hr>
+  <table id="orders">
+    <thead>
+      <tr>
+        <th></th>
+        <th colspan="3">Orders</th>
+        <th><input type="button" value="Add" onclick="addOrder()"></th>
+      </tr>
+      <tr>
+        <th></th>
+        <th>Type</th>
+        <th>Cost</th>
+        <th>Reduced</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+    <tfoot>
+      <tr>
+        <th colspan="2">Surplus</th>
+        <td></td>
+        <td id="surplus">1</td>
         <td></td>
       </tr>
     </tfoot>
